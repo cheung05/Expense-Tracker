@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>雲端記帳</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Material Symbols -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://apis.google.com/js/api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <h1>雲端記帳</h1>
+        <div id="auth-section">
+           <button id="logout-btn" class="btn btn-secondary" style="display:none;">登出</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container" id="main-content" style="display:none;">
+      
+      <div class="app-grid">
+        <!-- Dashboard & Chart section (Left side on desktop, stacked on mobile) -->
+        <section class="panel dashboard-panel">
+          
+          <div class="card chart-card">
+              <div class="chart-header">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                   <button id="prev-month-btn" class="icon-btn-small"><span class="material-symbols-outlined">chevron_left</span></button>
+                   <h2 class="month-title" id="month-title">4月<br><span>2026</span></h2>
+                   <button id="next-month-btn" class="icon-btn-small"><span class="material-symbols-outlined">chevron_right</span></button>
+                </div>
+                <div class="icon-btn tooltip-parent">
+                  <span class="material-symbols-outlined">payments</span>
+                </div>
+              </div>
+              
+              <div class="chart-container">
+                <canvas id="categoryChart"></canvas>
+                <div class="chart-center-text">
+                   <div id="chart-center-pct">0%</div>
+                </div>
+              </div>
+
+              <div class="budget-info">
+                 <span id="total-expense">0 $</span> / <span class="budget-limit">總計支出</span>
+              </div>
+          </div>
+
+          <!-- List Section inside Dashboard -->
+          <div class="list-section">
+            <div class="list-header">
+               <h3>近期紀錄</h3>
+               <a href="#" class="see-all">顯示全部</a>
+            </div>
+            
+            <div class="timeline-container" id="transaction-list">
+              <div class="loading-state">載入中...</div>
+            </div>
+          </div>
+          
+        </section>
+
+        <!-- Add Expense Form Section (Right side on desktop, stacked on mobile) -->
+        <section class="panel form-panel">
+          <div class="card form-card">
+            
+            <div class="form-header-blue">
+               <h2>新增紀錄</h2>
+            </div>
+            
+            <div class="form-body">
+               <form id="expense-form">
+                  <div class="form-group amount-group">
+                     <label>金額</label>
+                     <div class="amount-input-wrapper">
+                        <input type="number" id="amount" placeholder="輸入" min="0" step="any" required>
+                        <span class="currency-symbol">$</span>
+                     </div>
+                  </div>
+
+                  <div class="form-group date-type-group">
+                     <div class="col-date">
+                        <input type="date" id="date" required>
+                     </div>
+                     <div class="col-type">
+                        <select id="type" required class="stealth-select">
+                           <option value="支出">支出</option>
+                           <option value="收入">收入</option>
+                        </select>
+                     </div>
+                  </div>
+                  
+                  <hr class="divider">
+
+                  <div class="form-group">
+                     <label>選擇類別</label>
+                     <select id="category" required>
+                        <option value="" disabled selected>請選擇類別...</option>
+                        <option value="餐飲食品">餐飲食品</option>
+                        <option value="交通運輸">交通運輸</option>
+                        <option value="居家生活">居家生活</option>
+                        <option value="休閒娛樂">休閒娛樂</option>
+                        <option value="學習成長">學習成長</option>
+                        <option value="醫療保健">醫療保健</option>
+                        <option value="購物服飾">購物服飾</option>
+                        <option value="其他雜項">其他雜項</option>
+                     </select>
+                  </div>
+                  
+                  <div class="form-group">
+                     <label>付款方式</label>
+                     <select id="payment" required>
+                        <option value="" disabled selected>請選擇付款方式...</option>
+                        <option value="現金 (Cash)">現金 (Cash)</option>
+                        <option value="信用卡 (Credit Card)">信用卡 (Credit Card)</option>
+                        <option value="簽帳金融卡 (Debit Card / ATM 轉帳)">簽帳金融卡 (Debit Card / ATM 轉帳)</option>
+                        <option value="電子支付 (LINE Pay, Apple Pay, 街口支付)">電子支付 (LINE Pay, Apple Pay, 街口支付)</option>
+                        <option value="電子票證 (悠遊卡, 一卡通)">電子票證 (悠遊卡, 一卡通)</option>
+                     </select>
+                  </div>
+
+                  <div class="form-group">
+                     <label>備註說明</label>
+                     <textarea id="description" rows="2" placeholder="請輸入備註..."></textarea>
+                  </div>
+
+                  <div class="form-submit-wrapper">
+                     <button type="submit" class="btn btn-action btn-block" id="submit-btn">新增</button>
+                     <div id="form-msg" class="form-msg"></div>
+                  </div>
+               </form>
+            </div>
+          </div>
+        </section>
+      </div>
+
+    </main>
+
+    <!-- Welcome / Login overlay -->
+    <div id="welcome-screen" class="welcome-screen">
+      <div class="welcome-card card">
+         <div class="app-logo">
+            <span class="material-symbols-outlined" style="font-size: 48px; color: var(--primary)">account_balance_wallet</span>
+         </div>
+         <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--primary)">歡迎登入</h2>
+         <p style="margin-bottom: 2rem;">請先登入 Google 帳號以存取並同步您的試算表資料</p>
+         
+         <div id="setup-hint" style="text-align: left; background: #FEF2F2; padding: 1rem; border-radius: 8px; font-size: 0.85rem; color: #991B1B; margin-bottom: 1.5rem; display: none;">
+            <p><strong>⚠️ API 憑證未設定</strong></p>
+            <p>請開啟 <code>app.js</code>，填入 <code>CLIENT_ID</code> 與 <code>SPREADSHEET_ID</code>。</p>
+         </div>
+         <button id="welcome-login-btn" class="btn btn-action btn-lg btn-block" style="display: none;">連結 Google 帳號</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="app.js"></script>
+</body>
+</html>
