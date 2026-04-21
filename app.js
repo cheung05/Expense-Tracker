@@ -497,10 +497,3 @@ document.getElementById('confirm-delete-btn').addEventListener('click', async ()
         btn.innerText = originalText;
     }
 });
-
-window.onload = function () {
-    if (typeof gapi !== 'undefined' && typeof google !== 'undefined') {
-        gapiLoaded();
-        gisLoaded();
-    }
-}
